@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Spam Detector — AI Powered</title>
+    <meta name="description" content="AI-powered email spam detection using Groq. Analyze emails instantly and get auto-generated replies.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0a1a;
+            --bg-secondary: #111128;
+            --glass-bg: rgba(255, 255, 255, 0.04);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-hover: rgba(255, 255, 255, 0.07);
+            --text-primary: #e8e8f0;
+            --text-secondary: #9999b3;
+            --text-muted: #666680;
+            --accent-blue: #4f8fff;
+            --accent-purple: #8b5cf6;
+            --accent-green: #22c55e;
+            --accent-red: #ef4444;
+            --accent-amber: #f59e0b;
+            --gradient-primary: linear-gradient(135deg, #4f8fff 0%, #8b5cf6 100%);
+            --gradient-glow: linear-gradient(135deg, rgba(79, 143, 255, 0.15) 0%, rgba(139, 92, 246, 0.15) 100%);
+            --shadow-glow: 0 0 60px rgba(79, 143, 255, 0.08);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Animated background */
+        .bg-animation {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .bg-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.3;
+            animation: float 20s ease-in-out infinite;
+        }
+
+        .bg-orb:nth-child(1) {
+            width: 500px; height: 500px;
+            background: radial-gradient(circle, rgba(79,143,255,0.3), transparent 70%);
+            top: -10%; left: -5%;
+            animation-duration: 25s;
+        }
+
+        .bg-orb:nth-child(2) {
+            width: 400px; height: 400px;
+            background: radial-gradient(circle, rgba(139,92,246,0.25), transparent 70%);
+            bottom: -10%; right: -5%;
+            animation-duration: 30s;
+            animation-delay: -5s;
+        }
+
+        .bg-orb:nth-child(3) {
+            width: 300px; height: 300px;
+            background: radial-gradient(circle, rgba(34,197,94,0.15), transparent 70%);
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            animation-duration: 22s;
+            animation-delay: -10s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(30px, -40px) scale(1.05); }
+            50% { transform: translate(-20px, 20px) scale(0.95); }
+            75% { transform: translate(40px, 30px) scale(1.02); }
+        }
+
+        /* Grid pattern overlay */
+        .bg-grid {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+        }
+
+        /* Layout */
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 40px 24px 60px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px;
+            border-radius: 100px;
+            background: var(--gradient-glow);
+            border: 1px solid var(--glass-border);
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--accent-blue);
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            margin-bottom: 20px;
+            animation: fadeInDown 0.6s ease-out;
+        }
+
+        .header-badge .pulse-dot {
+            width: 6px; height: 6px;
+            background: var(--accent-green);
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+
+        .header h1 {
+            font-size: 38px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            animation: fadeInDown 0.6s ease-out 0.1s both;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 15px;
+            line-height: 1.6;
+            animation: fadeInDown 0.6s ease-out 0.2s both;
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Card */
+        .card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 32px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: var(--shadow-glow);
+            animation: fadeIn 0.8s ease-out 0.3s both;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card + .card {
+            margin-top: 20px;
+        }
+
+        /* Form elements */
+        .input-group {
+            margin-bottom: 24px;
+        }
+
+        .input-group label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 10px;
+        }
+
+        .input-group label .icon {
+            font-size: 16px;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 180px;
+            padding: 16px 20px;
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            line-height: 1.7;
+            resize: vertical;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        textarea::placeholder {
+            color: var(--text-muted);
+        }
+
+        textarea:focus {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(79, 143, 255, 0.1);
+            background: rgba(0, 0, 0, 0.35);
+        }
+
+        /* Analyze button */
+        .btn-analyze {
+            width: 100%;
+            padding: 16px 28px;
+            background: var(--gradient-primary);
+            border: none;
+            border-radius: 14px;
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-analyze:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(79, 143, 255, 0.25);
+        }
+
+        .btn-analyze:active {
+            transform: translateY(0);
+        }
+
+        .btn-analyze:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-analyze .btn-icon {
+            font-size: 18px;
+            transition: transform 0.3s ease;
+        }
+
+        .btn-analyze:hover .btn-icon {
+            transform: rotate(15deg);
+        }
+
+        /* Shimmer effect on button */
+        .btn-analyze::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                45deg,
+                transparent 40%,
+                rgba(255,255,255,0.08) 50%,
+                transparent 60%
+            );
+            animation: shimmer 3s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* Spinner */
+        .spinner {
+            display: none;
+            width: 20px; height: 20px;
+            border: 2.5px solid rgba(255,255,255,0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .btn-analyze.loading .spinner { display: block; }
+        .btn-analyze.loading .btn-text { display: none; }
+        .btn-analyze.loading .btn-icon { display: none; }
+
+        /* Result section */
+        .result-section {
+            display: none;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        .result-section.visible {
+            display: block;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        .result-icon {
+            width: 52px; height: 52px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .result-icon.safe {
+            background: rgba(34, 197, 94, 0.12);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+        }
+
+        .result-icon.spam {
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .result-icon.unknown {
+            background: rgba(245, 158, 11, 0.12);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+
+        .result-label {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .result-verdict {
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .result-verdict.safe { color: var(--accent-green); }
+        .result-verdict.spam { color: var(--accent-red); }
+        .result-verdict.unknown { color: var(--accent-amber); }
+
+        /* Reply section */
+        .reply-section {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(34, 197, 94, 0.04);
+            border: 1px solid rgba(34, 197, 94, 0.1);
+            border-radius: 14px;
+        }
+
+        .reply-section h3 {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--accent-green);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .reply-text {
+            color: var(--text-primary);
+            font-size: 14px;
+            line-height: 1.7;
+            white-space: pre-wrap;
+        }
+
+        /* Reasoning section */
+        .reasoning-section {
+            margin-top: 16px;
+        }
+
+        .reasoning-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            color: var(--text-secondary);
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 100%;
+            text-align: left;
+        }
+
+        .reasoning-toggle:hover {
+            background: var(--glass-hover);
+        }
+
+        .reasoning-toggle .chevron {
+            margin-left: auto;
+            transition: transform 0.3s ease;
+            font-size: 12px;
+        }
+
+        .reasoning-toggle.open .chevron {
+            transform: rotate(180deg);
+        }
+
+        .reasoning-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease, padding 0.3s ease;
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 0 0 10px 10px;
+            margin-top: -2px;
+        }
+
+        .reasoning-content.open {
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 16px;
+        }
+
+        .reasoning-content p {
+            color: var(--text-muted);
+            font-size: 13px;
+            line-height: 1.7;
+            font-style: italic;
+            white-space: pre-wrap;
+        }
+
+        /* Error */
+        .error-message {
+            display: none;
+            padding: 16px 20px;
+            background: rgba(239, 68, 68, 0.08);
+            border: 1px solid rgba(239, 68, 68, 0.15);
+            border-radius: 12px;
+            color: var(--accent-red);
+            font-size: 14px;
+            margin-top: 20px;
+            animation: shake 0.5s ease-out;
+        }
+
+        .error-message.visible { display: flex; align-items: center; gap: 10px; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-6px); }
+            40% { transform: translateX(6px); }
+            60% { transform: translateX(-4px); }
+            80% { transform: translateX(4px); }
+        }
+
+        /* Sample buttons */
+        .samples {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .sample-btn {
+            padding: 8px 14px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .sample-btn:hover {
+            background: var(--glass-hover);
+            color: var(--text-primary);
+            border-color: rgba(255,255,255,0.15);
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: auto;
+            padding-top: 40px;
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+
+        .footer span {
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 600;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .container { padding: 24px 16px 40px; }
+            .header h1 { font-size: 28px; }
+            .card { padding: 20px; border-radius: 16px; }
+            textarea { min-height: 140px; }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+    </style>
+</head>
+<body>
+
+    <div class="bg-animation">
+        <div class="bg-orb"></div>
+        <div class="bg-orb"></div>
+        <div class="bg-orb"></div>
+    </div>
+    <div class="bg-grid"></div>
+
+    <div class="container">
+        <header class="header">
+            <div class="header-badge">
+                <span class="pulse-dot"></span>
+                AI-Powered Analysis
+            </div>
+            <h1>Email Spam Detector</h1>
+            <p>Paste any email below and let AI determine whether it's spam — and generate a smart reply if it's not.</p>
+        </header>
+
+        <div class="card" id="input-card">
+            <div class="input-group">
+                <label>
+                    <span class="icon">📧</span>
+                    Email Content
+                </label>
+                <textarea
+                    id="email-input"
+                    placeholder="Paste your email content here...&#10;&#10;Examples: meeting invitations, promotional offers, phishing attempts..."
+                ></textarea>
+                <div class="samples">
+                    <button class="sample-btn" onclick="loadSample('legit')" type="button">📬 Try Legit Email</button>
+                    <button class="sample-btn" onclick="loadSample('spam')" type="button">🚫 Try Spam Email</button>
+                    <button class="sample-btn" onclick="loadSample('phish')" type="button">🎣 Try Phishing Email</button>
+                </div>
+            </div>
+            <button class="btn-analyze" id="analyze-btn" onclick="analyzeEmail()">
+                <span class="btn-icon">🔍</span>
+                <span class="btn-text">Analyze Email</span>
+                <div class="spinner"></div>
+            </button>
+            <div class="error-message" id="error-msg">
+                <span>⚠️</span>
+                <span id="error-text"></span>
+            </div>
+        </div>
+
+        <div class="card result-section" id="result-section">
+            <div class="result-header">
+                <div class="result-icon" id="result-icon"></div>
+                <div>
+                    <div class="result-label">Verdict</div>
+                    <div class="result-verdict" id="result-verdict"></div>
+                </div>
+            </div>
+
+            <div class="reply-section" id="reply-section" style="display:none;">
+                <h3><span>✉️</span> Suggested Reply</h3>
+                <div class="reply-text" id="reply-text"></div>
+            </div>
+
+            <div class="reasoning-section" id="reasoning-section" style="display:none;">
+                <button class="reasoning-toggle" id="reasoning-toggle" onclick="toggleReasoning()" type="button">
+                    <span>🧠</span>
+                    AI Reasoning
+                    <span class="chevron">▼</span>
+                </button>
+                <div class="reasoning-content" id="reasoning-content">
+                    <p id="reasoning-text"></p>
+                </div>
+            </div>
+        </div>
+
+        <footer class="footer">
+            Powered by <span>Groq AI</span>
+        </footer>
+    </div>
+
+    <script>
+        const samples = {
+            legit: `Hi Team,\n\nI hope this email finds you well. I'd like to schedule a meeting next Tuesday at 2 PM to discuss the Q3 roadmap and project milestones.\n\nPlease let me know if this time works for everyone. If not, kindly suggest an alternative.\n\nBest regards,\nSarah Johnson\nProduct Manager`,
+            spam: `🎉🎉 CONGRATULATIONS!!! 🎉🎉\n\nYou have been SELECTED as a WINNER of our $5,000,000 MEGA JACKPOT lottery!!! 💰💰💰\n\nTo CLAIM your PRIZE, click here IMMEDIATELY: http://totally-not-a-scam.xyz/claim\n\nACT NOW before your prize EXPIRES! Send us your bank details and SSN to process the transfer!\n\nThis is NOT a scam! 100% LEGITIMATE!!`,
+            phish: `Dear Valued Customer,\n\nWe have detected unusual activity on your bank account. Your account will be suspended within 24 hours unless you verify your identity.\n\nPlease click the link below to confirm your account details:\nhttp://secure-banking-verify.com/login\n\nEnter your username, password, and security questions to restore access.\n\nSincerely,\nBank Security Team`
+        };
+
+        function loadSample(type) {
+            document.getElementById('email-input').value = samples[type];
+            document.getElementById('email-input').focus();
+            hideResults();
+        }
+
+        function hideResults() {
+            document.getElementById('result-section').classList.remove('visible');
+            document.getElementById('error-msg').classList.remove('visible');
+        }
+
+        async function analyzeEmail() {
+            const emailContent = document.getElementById('email-input').value.trim();
+            const btn = document.getElementById('analyze-btn');
+            const errorMsg = document.getElementById('error-msg');
+
+            if (!emailContent) {
+                errorMsg.classList.add('visible');
+                document.getElementById('error-text').textContent = 'Please paste an email to analyze.';
+                return;
+            }
+
+            // Reset
+            hideResults();
+            btn.classList.add('loading');
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: emailContent })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Something went wrong');
+                }
+
+                displayResult(data);
+            } catch (err) {
+                errorMsg.classList.add('visible');
+                document.getElementById('error-text').textContent = err.message;
+            } finally {
+                btn.classList.remove('loading');
+                btn.disabled = false;
+            }
+        }
+
+        function displayResult(data) {
+            const section = document.getElementById('result-section');
+            const icon = document.getElementById('result-icon');
+            const verdict = document.getElementById('result-verdict');
+            const replySection = document.getElementById('reply-section');
+            const replyText = document.getElementById('reply-text');
+            const reasoningSection = document.getElementById('reasoning-section');
+            const reasoningText = document.getElementById('reasoning-text');
+
+            // Determine verdict
+            const isSpam = data.is_spam === 'Yes';
+            const isUnknown = data.is_spam === 'Unknown';
+
+            if (isSpam) {
+                icon.className = 'result-icon spam';
+                icon.textContent = '🚨';
+                verdict.className = 'result-verdict spam';
+                verdict.textContent = 'Spam Detected';
+            } else if (isUnknown) {
+                icon.className = 'result-icon unknown';
+                icon.textContent = '❓';
+                verdict.className = 'result-verdict unknown';
+                verdict.textContent = 'Unable to Determine';
+            } else {
+                icon.className = 'result-icon safe';
+                icon.textContent = '✅';
+                verdict.className = 'result-verdict safe';
+                verdict.textContent = 'Not Spam — Safe';
+            }
+
+            // Reply
+            if (!isSpam && data.reply) {
+                replyText.textContent = data.reply;
+                replySection.style.display = 'block';
+            } else {
+                replySection.style.display = 'none';
+            }
+
+            // Reasoning
+            if (data.reasoning) {
+                reasoningText.textContent = data.reasoning;
+                reasoningSection.style.display = 'block';
+                // Reset toggle state
+                document.getElementById('reasoning-toggle').classList.remove('open');
+                document.getElementById('reasoning-content').classList.remove('open');
+            } else {
+                reasoningSection.style.display = 'none';
+            }
+
+            section.classList.add('visible');
+        }
+
+        function toggleReasoning() {
+            document.getElementById('reasoning-toggle').classList.toggle('open');
+            document.getElementById('reasoning-content').classList.toggle('open');
+        }
+
+        // Allow Ctrl+Enter to submit
+        document.getElementById('email-input').addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') {
+                analyzeEmail();
+            }
+        });
+    </script>
+</body>
+</html>
