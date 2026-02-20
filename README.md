@@ -33,6 +33,6 @@ This is a simple Flask-based web application designed to detect whether an email
 
 ## Demo Interface
 
-![Email Spam Detector UI](https://user-images.githubusercontent.com/bhavya-anil/Email_Spam_Detector/main/Demo.png)
+![Email Spam Detector UI](https://github.com/user-attachments/assets/069f6be7-d1c1-40b3-b431-718df59e35e1)
 
 The web UI features an **AI-powered analysis** section where users can paste any email content and let the system determine whether it’s spam or not. Buttons are provided to try legitimate, spam, and phishing samples, and a smart reply is generated for non-spam messages. The verdict (e.g. “Spam Detected”) is shown along with reasoning to help users understand the decision.
